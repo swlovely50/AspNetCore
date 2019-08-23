@@ -267,6 +267,7 @@ fi
 msbuild_args[${#msbuild_args[*]}]="-p:Configuration=$configuration"
 
 # Set verbosity
+echo "Setting msbuild verbosity to $verbosity"
 msbuild_args[${#msbuild_args[*]}]="-verbosity=$verbosity"
 
 # Initialize global variables need to be set before the import of Arcade is imported
