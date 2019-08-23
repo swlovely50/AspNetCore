@@ -324,7 +324,6 @@ namespace Microsoft.AspNetCore.Http.Connections.Internal
                     NegotiateProtocol.WriteResponse(response, writer);
                     return;
                 }
-                // Compare clientProtocolVersion with the server protocolVersion in HttpConnectionDispatcherOptions.
             }
 
             if ((options.Transports & HttpTransportType.WebSockets) != 0 && ServerHasWebSockets(context.Features))

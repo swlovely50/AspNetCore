@@ -431,7 +431,6 @@ namespace Microsoft.AspNetCore.Http.Connections.Client
                 urlBuilder.Path += "negotiate";
                 urlBuilder.Query = $"version={_protocolVersionNumber}";
 
-
                 using (var request = new HttpRequestMessage(HttpMethod.Post, urlBuilder.Uri))
                 {
                     // Corefx changed the default version and High Sierra curlhandler tries to upgrade request
