@@ -266,6 +266,9 @@ if [ -z "$configuration" ]; then
 fi
 msbuild_args[${#msbuild_args[*]}]="-p:Configuration=$configuration"
 
+# Set verbosity
+msbuild_args[${#msbuild_args[*]}]="-verbosity=$verbosity"
+
 # Initialize global variables need to be set before the import of Arcade is imported
 restore=$run_restore
 
