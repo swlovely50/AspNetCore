@@ -308,9 +308,24 @@ namespace Microsoft.AspNetCore.Http.Connections.Internal
 
         private static void WriteNegotiatePayload(IBufferWriter<byte> writer, string connectionId, HttpContext context, HttpConnectionDispatcherOptions options)
         {
-            var response = new NegotiationResponse();
-            response.ConnectionId = connectionId;
-            response.AvailableTransports = new List<AvailableTransport>();
+            var response = new NegotiationResponse
+            {
+                ConnectionId = connectionId,
+                AvailableTransports = new List<AvailableTransport>(),
+                Version = options.MinimumProtocolVersion
+            };
+
+            if (context.Request.Query.TryGetValue("version", out var queryStringVersion))
+            {
+                var clientProtocolVersion = int.Parse(queryStringVersion.ToString());
+                if (clientProtocolVersion < options.MinimumProtocolVersion)
+                {
+                    response.Error = $"The client requested version '{clientProtocolVersion}', but the server does not support this version.";
+                    NegotiateProtocol.WriteResponse(response, writer);
+                    return;
+                }
+                // Compare clientProtocolVersion with the server protocolVersion in HttpConnectionDispatcherOptions.
+            }
 
             if ((options.Transports & HttpTransportType.WebSockets) != 0 && ServerHasWebSockets(context.Features))
             {

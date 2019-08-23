@@ -27,6 +27,8 @@ namespace Microsoft.AspNetCore.Http.Connections
         private static JsonEncodedText TransferFormatsPropertyNameBytes = JsonEncodedText.Encode(TransferFormatsPropertyName);
         private const string ErrorPropertyName = "error";
         private static JsonEncodedText ErrorPropertyNameBytes = JsonEncodedText.Encode(ErrorPropertyName);
+        private const string version = "version";
+        private static JsonEncodedText VersionPropertyNameBytes = JsonEncodedText.Encode(version);
 
         // Use C#7.3's ReadOnlySpan<byte> optimization for static data https://vcsjones.com/2019/02/01/csharp-readonly-span-bytes-static/
         // Used to detect ASP.NET SignalR Server connection attempt
@@ -41,6 +43,17 @@ namespace Microsoft.AspNetCore.Http.Connections
                 var writer = reusableWriter.GetJsonWriter();
                 writer.WriteStartObject();
 
+                // If we already have an error its due to a protocol version incompatibility.
+                // We can just write the error and complete the JSON object and return.
+                if (!string.IsNullOrEmpty(response.Error))
+                {
+                    writer.WriteString(ErrorPropertyNameBytes, response.Error);
+                    writer.WriteEndObject();
+                    writer.Flush();
+                    Debug.Assert(writer.CurrentDepth == 0);
+                    return;
+                }
+
                 if (!string.IsNullOrEmpty(response.Url))
                 {
                     writer.WriteString(UrlPropertyNameBytes, response.Url);
@@ -54,6 +67,11 @@ namespace Microsoft.AspNetCore.Http.Connections
                 if (!string.IsNullOrEmpty(response.ConnectionId))
                 {
                     writer.WriteString(ConnectionIdPropertyNameBytes, response.ConnectionId);
+                }
+
+                if (response.Version > 0)
+                {
+                    writer.WriteNumber(VersionPropertyNameBytes, response.Version);
                 }
 
                 writer.WriteStartArray(AvailableTransportsPropertyNameBytes);

@@ -279,4 +279,14 @@ namespace Microsoft.AspNetCore.SignalR.Client.FunctionalTests
     {
         public string Echo(string message) => TestHubMethodsImpl.Echo(message);
     }
+
+    public class NegotiateVersion12Hub : Hub
+    {
+
+    }
+
+    public class NegotiateVersionNegativeHub : Hub
+    {
+
+    }
 }
