@@ -27,8 +27,8 @@ namespace Microsoft.AspNetCore.Http.Connections
         private static JsonEncodedText TransferFormatsPropertyNameBytes = JsonEncodedText.Encode(TransferFormatsPropertyName);
         private const string ErrorPropertyName = "error";
         private static JsonEncodedText ErrorPropertyNameBytes = JsonEncodedText.Encode(ErrorPropertyName);
-        private const string version = "version";
-        private static JsonEncodedText VersionPropertyNameBytes = JsonEncodedText.Encode(version);
+        private const string VersionPropertyName = "version";
+        private static JsonEncodedText VersionPropertyNameBytes = JsonEncodedText.Encode(VersionPropertyName);
 
         // Use C#7.3's ReadOnlySpan<byte> optimization for static data https://vcsjones.com/2019/02/01/csharp-readonly-span-bytes-static/
         // Used to detect ASP.NET SignalR Server connection attempt
@@ -53,6 +53,11 @@ namespace Microsoft.AspNetCore.Http.Connections
                     Debug.Assert(writer.CurrentDepth == 0);
                     return;
                 }
+                
+                if (response.Version > 0)
+                {
+                    writer.WriteNumber(VersionPropertyNameBytes, response.Version);
+                }
 
                 if (!string.IsNullOrEmpty(response.Url))
                 {
@@ -69,10 +74,6 @@ namespace Microsoft.AspNetCore.Http.Connections
                     writer.WriteString(ConnectionIdPropertyNameBytes, response.ConnectionId);
                 }
 
-                if (response.Version > 0)
-                {
-                    writer.WriteNumber(VersionPropertyNameBytes, response.Version);
-                }
 
                 writer.WriteStartArray(AvailableTransportsPropertyNameBytes);
 
@@ -134,6 +135,7 @@ namespace Microsoft.AspNetCore.Http.Connections
                 string accessToken = null;
                 List<AvailableTransport> availableTransports = null;
                 string error = null;
+                int version = 0;
 
                 var completed = false;
                 while (!completed && reader.CheckRead())
@@ -152,6 +154,10 @@ namespace Microsoft.AspNetCore.Http.Connections
                             else if (reader.ValueTextEquals(ConnectionIdPropertyNameBytes.EncodedUtf8Bytes))
                             {
                                 connectionId = reader.ReadAsString(ConnectionIdPropertyName);
+                            }
+                            else if (reader.ValueTextEquals(VersionPropertyNameBytes.EncodedUtf8Bytes))
+                            {
+                                version = reader.ReadAsInt32(VersionPropertyName).GetValueOrDefault();
                             }
                             else if (reader.ValueTextEquals(AvailableTransportsPropertyNameBytes.EncodedUtf8Bytes))
                             {
@@ -213,6 +219,7 @@ namespace Microsoft.AspNetCore.Http.Connections
                     AccessToken = accessToken,
                     AvailableTransports = availableTransports,
                     Error = error,
+                    Version = version
                 };
             }
             catch (Exception ex)
